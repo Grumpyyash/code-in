@@ -1,0 +1,59 @@
+<%- include("partials/header"); -%>
+    <div class="demand-header">
+      <h4>Found Results for Your Product</h4>
+    </div>
+
+    <hr class="hr">
+
+    <div class="home-header">
+      <div class="row cards-row">
+
+        <script type="text/javascript">
+          function Send(email,name) {
+            let transporter = nodemailer.createTransport({
+                service:"gmail",
+                port: 587,
+              secure: false,
+                auth:{
+                  user:"mittalyash699@gmail.com",
+                  pass:"lostNfound@19"
+                },
+                tls:{
+                    rejectUnauthorized:false
+                }
+              });
+
+              let info = transporter.sendMail({
+                from: '"lostNfound " <mittalyash699@gmail.com>', // sender address
+                to: `${email}`, // list of receivers
+                subject: "Thank you for submitting report at lostNfound", // Subject line
+                text: "Hello", // plain text body
+                html: `<p>Hii ${name},we have saved your lost report.Currently we don't have anything that matches with your Item.But we will reach out to you as soon we found something that matches your product.Thank you. </b>`, // html body
+              });
+
+              console.log("Message sent: %s", info.messageId);
+              console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+          }
+        </script>
+
+
+
+        <% foundItems.forEach(function(item, index){ %>
+
+        <div class="col-lg-3 col-sm-12">
+          <div class="card" style="width: 18rem;">
+          <div class="card-body">
+          <p><%= item.props %></p>
+          <hr>
+          <p>Email of the person who found it - <%= item.email %></p>
+          <p>Phone number of the person who found it - <%= item.phone %></p>
+          <button style="margin-left:250px" onclick="Send(item.email,item.name)" class="btn sell-btn btn-danger" type="button">Claim</button>
+          </div>
+         </div>
+      </div>
+      <% }) %>
+      </div>
+      </div>
+
+
+<%- include("partials/footer"); -%>

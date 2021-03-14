@@ -6,6 +6,8 @@ const _ = require("lodash");
 const multer = require('multer');
 var fs = require('fs');
 var path = require('path');
+const nodemailer=require("nodemailer");
+const {spawn} = require('child_process');
 // const upload = multer({dest: __dirname + '/uploads/images'});
 // const fileUpload = require('express-fileupload');
 const methodOverride = require('method-override');
@@ -149,6 +151,9 @@ app.get("/others", function(req, res){
   });
 });
 
+let num=0;
+var count=0,val=0;
+var foundArray = [];
 
 app.post("/lostForm", function(req, res){
   const type = req.body.category;
@@ -159,6 +164,35 @@ app.post("/lostForm", function(req, res){
     category: req.body.category,
     props: req.body.props
   });
+
+  Found.find({}, function(err, foundItems){
+    for(var i=0;i<foundItems.length;i++){
+      var string = foundItems[i].props;
+      var email = foundItems[i].email;
+      var phone = foundItems[i].phone;
+      const proc = spawn('python', ['Similarity.py', lostItem.props, foundItems[i].props]);
+      
+      proc.stdout.on("data", (data) => {
+        num = parseFloat(data.toString());
+        var val = (num*100);
+        if(val >= 75){
+          console.log(string);
+          console.log(email);
+          console.log(phone);
+
+          var obj = {};
+          obj["props"] = string;
+          obj["email"] = email;
+          obj["phone"] = phone;
+
+          foundArray.push(obj);
+
+          count++;
+        }
+      });
+    }      
+  });
+  
 
   lostItem.save(function(err){
     if(!err){
@@ -245,7 +279,16 @@ app.post("/lostForm", function(req, res){
       }
     })
   }
-  res.redirect("/");
+  setTimeout(function() {
+    console.log(count);
+    if(count === 0){
+      res.render("notFound");
+    } else {
+      res.render("match", {
+        foundItems: foundArray
+      });
+    }
+  }, 30000);
 });
 
 
@@ -264,6 +307,10 @@ const upload = multer({ storage: storage ,
   limits: { fieldSize: 10 * 1024 * 1024 }
 });
 
+let number=0;
+var value=0;
+var lostArray = [];
+
 app.post("/foundForm",upload.single("profile"),function(req, res){
   console.log(req.file);
   const found = new Found({
@@ -274,13 +321,8 @@ app.post("/foundForm",upload.single("profile"),function(req, res){
       category: req.body.category,
       props: req.body.props
   });
-  try {
-   found.save();
-
-   res.redirect("/");
- } catch (error) {
-   console.log(error);
- }
+  found.save();
+  res.redirect("/");
 });
 
 app.post("/search", function(req, res){

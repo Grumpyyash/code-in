@@ -5,6 +5,6 @@ node_modules/
 npm-debug.log
 package-lock.json
 test/*.log
-
+glove.6B.100d.txt
 
 
